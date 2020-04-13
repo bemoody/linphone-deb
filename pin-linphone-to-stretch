@@ -1,0 +1,3 @@
+Package: linphone linphone-nogtk linphone-common libortp9 libortp-dev libmediastreamer-base3 libmediastreamer-dev liblinphone5 liblinphone-dev linphone-dbg
+Pin: release n=stretch
+Pin-Priority: 995

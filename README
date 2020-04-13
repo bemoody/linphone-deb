@@ -1,0 +1,127 @@
+Linphone packages for zoom.us compatibility
+-------------------------------------------
+
+This repository contains linphone packages for Debian, which can be
+used to join video conferences hosted on zoom.us.
+
+These are slightly modified versions of the official linphone packages
+from Debian 9 (stretch).  (Note that these are OLD packages!  A
+slightly newer version of Linphone is available in Debian 10, but I
+haven't figured out how to make that version work with H.264 video.  I
+haven't had any luck using the latest version of Linphone, either.)
+
+These packages can probably also be compiled for Ubuntu and similar
+systems, but you'd need to have the correct versions of various
+dependencies (in particular, libsrtp and ffmpeg.)
+
+Quick start:
+
+0. If you're using Debian 10 (buster) or newer:
+
+	cp stretch.list /etc/apt/sources.list.d/
+	cp pin-linphone-to-stretch /etc/apt/preferences.d/
+	apt update
+
+1. Install the packages:
+
+	apt install                                         \
+	   ./liblinphone5_3.6.1-3+bm1_amd64.deb             \
+	   ./libmediastreamer-base3_3.6.1-3+bm1_amd64.deb   \
+	   ./libmediastreamer-x264_1.4.3-0+bm1_amd64.deb    \
+	   ./libortp9_3.6.1-3+bm1_amd64.deb                 \
+	   ./linphone_3.6.1-3+bm1_amd64.deb                 \
+	   ./linphone-common_3.6.1-3+bm1_all.deb            \
+	   ./linphone-nogtk_3.6.1-3+bm1_amd64.deb
+
+2. In your linphone configuration:
+
+   * Disable Opus audio compression.
+
+     Go to Options > Preferences > Codecs, select "Audio codecs" in
+     the drop-down, find "opus" in the list and click "Disable".
+
+     (I don't know if this is because of a bug in Debian/Linphone's
+     implementation of Opus, or Zoom's implementation, but either way,
+     at present, using Opus gives completely garbled and
+     unintelligible sound.)
+
+   * Enable H.264 video compression.
+
+     Go to Options > Preferences > Codecs, select "Video codecs" in
+     the drop-down, find "H264" in the list and click "Enable".
+
+   * Enable SRTP encryption.
+
+     Go to Options > Preferences > Network settings, and under "Media
+     encryption type" select "SRTP".
+
+   * Enable video by default.
+
+     In the Options menu, ensure that "Always start video" is checked.
+
+3. Join a meeting by dialing "sip:<MEETING-ID>@zoomcrc.com".  For
+   example, if your meeting ID is "123 456 789", you would dial
+   sip:123456789@zoomcrc.com in Linphone.
+
+   This may require the person creating the meeting to have a
+   commercial license from Zoom.
+
+   Note that your "current identity" (selected at the bottom of the
+   linphone window) determines the name that will be shown to other
+   meeting participants.
+
+
+Troubleshooting
+---------------
+
+* It says "User is temporarily unavailable".
+
+  -> Check that "H264" is enabled in Video Codecs, and that "Always
+     start video" is checked.
+
+* Connected but sounds like a needle being scratched across a record.
+
+  -> Check that "opus" is disabled in Audio Codecs.
+
+* Connected but no sound at all.
+
+  -> Check that "PCMU", "PCMA", and/or "G722" are enabled in Audio
+     Codecs.  You may want to play with these to see which gives the
+     best results.
+
+* Connected but gives an error about encryption being required.
+
+  -> Check that Media Encryption Type is set to SRTP.
+
+* It still doesn't work.
+
+  -> Tell your friends to use Jitsi instead.
+
+
+Changes from the official Debian packages
+-----------------------------------------
+
+The only change made to linphone is to enable the use of SRTP, which
+was disabled in the official Debian package due to symbol leakage in
+libsrtp.
+
+(I'm not sure what exactly the issue is that linphone was trying to
+avoid here - which library functions are conflicting with which
+others.  The linphone package itself recommends using linphone's fork
+of libsrtp instead, but it's not entirely clear which version is
+needed.)
+
+Anyway, to work around any possible conflicts, I simply load libsrtp
+using dlopen in libortp.  This is a nasty kludge but it seems to work.
+
+In addition to the linphone package itself, H.264 support is provided
+by the separate msx264 package.  Note that this package is closely
+tied to the libmediastreamer API; msx264-1.4.3 appears to be the
+correct version to use with linphone-3.6.1.
+
+
+Copying
+-------
+
+All modifications are licensed under the same terms as linphone itself
+(GNU General Public License, version 2 or later.)
